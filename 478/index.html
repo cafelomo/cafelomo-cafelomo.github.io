@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4-7-8 호흡</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="circle-container">
+            <div id="circle">
+                <div id="guide-text">시작하세요</div>
+                <div id="timer-text"></div>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="start-button">시작</button>
+            <button id="stop-button">정지</button>
+        </div>
+    </div>
+
+    <audio id="tick-sound" src="tick.mp3" preload="auto"></audio>
+    <audio id="phase-sound" src="phase_change.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

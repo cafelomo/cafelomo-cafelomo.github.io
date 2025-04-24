@@ -1,0 +1,111 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    overflow: hidden; /* Prevent scrollbars during animation */
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; /* Distribute space */
+    text-align: center;
+    width: 100%;
+    max-width: 400px; /* Mobile-first max width */
+    height: 80vh; /* Limit height to prevent overflow */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.circle-container {
+    flex-grow: 1; /* Allow circle container to take available space */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px; /* Space between circle and buttons */
+}
+
+#circle {
+    width: 100px; /* Initial size */
+    height: 100px;
+    background-color: #87CEEB; /* Sky Blue */
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* Needed for text positioning */
+    transition: width 0.5s ease-in-out, height 0.5s ease-in-out, background-color 0.5s ease-in-out;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation states */
+#circle.grow {
+    /* Max size calculated to fit within container */
+    width: clamp(150px, 60vmin, 250px);
+    height: clamp(150px, 60vmin, 250px);
+}
+
+#circle.hold {
+    background-color: #9370DB; /* Medium Purple */
+    /* Size remains the same as .grow */
+    width: clamp(150px, 60vmin, 250px);
+    height: clamp(150px, 60vmin, 250px);
+}
+
+#circle.shrink {
+    width: 100px; /* Back to initial size */
+    height: 100px;
+    background-color: #87CEEB; /* Back to initial color */
+}
+
+#guide-text {
+    font-size: 1.2em; /* Relative font size */
+    margin-bottom: 5px;
+}
+
+#timer-text {
+    font-size: 2.5em; /* Larger font size for timer */
+}
+
+.controls {
+    display: flex;
+    gap: 15px; /* Space between buttons */
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50; /* Green */
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+#stop-button {
+    background-color: #f44336; /* Red */
+}
+
+#stop-button:hover {
+    background-color: #da190b;
+}
+
+/* Hide audio elements visually */
+audio {
+    position: absolute;
+    left: -9999px;
+}
