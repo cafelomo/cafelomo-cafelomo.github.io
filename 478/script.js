@@ -83,6 +83,12 @@ function stopBreathing() {
     circle.className = ''; // Remove animation classes
     circle.style.transitionDuration = '0.5s, 0.5s, 0.5s'; // Reset transition duration
 
+    // Stop sounds
+    tickSound.pause();
+    tickSound.currentTime = 0;
+    phaseSound.pause();
+    phaseSound.currentTime = 0;
+
     currentPhaseIndex = 0;
     remainingTime = 0;
 
