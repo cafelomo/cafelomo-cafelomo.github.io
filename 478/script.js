@@ -47,13 +47,17 @@ function updateUI() {
 }
 
 function tick() {
-    remainingTime--;
-    timerText.textContent = remainingTime;
-    playSound(tickSound);
-
-    if (remainingTime <= 0) {
+    // Check if the *current* time is 0, meaning the phase should change now
+    if (remainingTime === 0) {
         currentPhaseIndex = (currentPhaseIndex + 1) % phases.length;
-        updateUI();
+        updateUI(); // updateUI resets remainingTime and displays it
+        // Play tick sound for the start of the new phase's countdown
+        playSound(tickSound);
+    } else {
+        // If not changing phase, decrement the time, display it, and play sound
+        remainingTime--;
+        timerText.textContent = remainingTime;
+        playSound(tickSound);
     }
 }
 
