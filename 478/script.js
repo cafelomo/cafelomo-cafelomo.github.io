@@ -1,112 +1,150 @@
-const circle = document.getElementById('circle');
-const guideText = document.getElementById('guide-text');
-const timerText = document.getElementById('timer-text');
-const startButton = document.getElementById('start-button');
-const stopButton = document.getElementById('stop-button');
-const tickSound = document.getElementById('tick-sound');
-const phaseSound = document.getElementById('phase-sound');
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const breathContainer = document.querySelector('.breath-container');
+    const progressDot = document.querySelector('.progress-dot');
+    const phaseNameDisplay = document.getElementById('phase-name');
+    const timeLeftDisplay = document.getElementById('time-left');
+    const startButton = document.getElementById('start-button');
+    const stopButton = document.getElementById('stop-button');
 
-const phases = [
-    { name: '흡입', duration: 4, className: 'grow' },
-    { name: '유지', duration: 7, className: 'hold' },
-    { name: '배출', duration: 8, className: 'shrink' }
-];
+    // Breathing Phases Configuration
+    const phases = [
+        { name: '들이마시기', duration: 4, color: '#4CAF50' }, // Inhale
+        { name: '참기', duration: 7, color: '#FFC107' },       // Hold
+        { name: '내쉬기', duration: 8, color: '#2196F3' },     // Exhale
+    ];
+    const totalCycleDuration = phases.reduce((sum, phase) => sum + phase.duration, 0); // 19 seconds
 
-let currentPhaseIndex = 0;
-let timerInterval = null;
-let remainingTime = 0;
+    // State Variables
+    let isRunning = false;
+    let currentPhaseIndex = 0;
+    let timeElapsedInPhase = 0;
+    let totalTimeElapsedInCycle = 0; // Tracks time within the current 19s cycle for dot position
+    let animationFrameId = null;
+    let lastTimestamp = 0;
 
-function playSound(audioElement) {
-    audioElement.currentTime = 0; // Rewind to the start
-    audioElement.play().catch(error => {
-        // Autoplay might be blocked, user interaction is needed
-        console.warn("Audio playback failed:", error);
-        // Optionally, inform the user they need to interact first
-    });
-}
+    // --- Initialization ---
+    function resetState() {
+        isRunning = false;
+        currentPhaseIndex = 0;
+        timeElapsedInPhase = 0;
+        totalTimeElapsedInCycle = 0;
+        lastTimestamp = 0;
 
-function updateUI() {
-    const currentPhase = phases[currentPhaseIndex];
-    guideText.textContent = currentPhase.name;
-    remainingTime = currentPhase.duration;
-    timerText.textContent = remainingTime;
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
 
-    // Update circle animation class
-    circle.className = ''; // Reset classes first
-    // Add a small delay before adding the new class to ensure transition restarts
-    setTimeout(() => {
-        circle.classList.add(currentPhase.className);
-        // Set transition durations dynamically based on phase
-        circle.style.transitionDuration = `${currentPhase.duration}s, ${currentPhase.duration}s, 0.5s`; // width, height, background-color
-    }, 10); // Small delay like 10ms
+        // Reset displays to initial state
+        phaseNameDisplay.textContent = "시작하세요";
+        timeLeftDisplay.textContent = phases[0].duration; // Show initial phase duration
+        updateDotPosition(0); // Reset dot to 12 o'clock
 
-    // Play phase change sound only when transitioning between phases, not on initial start
-    if (timerInterval) { // Check if the timer is already running
-         playSound(phaseSound);
+        // Reset button states
+        startButton.disabled = false;
+        stopButton.disabled = true;
     }
-}
 
-function tick() {
-    // Check if the *current* time is 0, meaning the phase should change now
-    if (remainingTime === 0) {
-        currentPhaseIndex = (currentPhaseIndex + 1) % phases.length;
-        updateUI(); // updateUI resets remainingTime and displays it
-        // Play tick sound for the start of the new phase's countdown
-        playSound(tickSound);
-    } else {
-        // If not changing phase, decrement the time, display it, and play sound
-        remainingTime--;
-        timerText.textContent = remainingTime;
-        playSound(tickSound);
+    // --- Timer and Display Update ---
+    function updateTimerDisplay(phaseName, timeLeft) {
+        phaseNameDisplay.textContent = phaseName;
+        // Display the ceiling of the time left (e.g., 4, 3, 2, 1)
+        timeLeftDisplay.textContent = Math.max(0, Math.ceil(timeLeft));
     }
-}
 
-function startBreathing() {
-    if (timerInterval) return; // Prevent multiple intervals
+    // --- Dot Position Update ---
+    function updateDotPosition(elapsedCycleTime) {
+        // Calculate the angle based on the proportion of time elapsed in the total cycle
+        const angleRatio = (elapsedCycleTime % totalCycleDuration) / totalCycleDuration;
+        // Angle in degrees: 0 degrees at 3 o'clock, needs offset for 12 o'clock start (-90 deg)
+        const angleDegrees = angleRatio * 360 - 90;
+        const angleRadians = angleDegrees * (Math.PI / 180);
 
-    // Reset to the first phase and update UI immediately
-    currentPhaseIndex = 0;
-    updateUI();
+        // Calculate dot position on the circle circumference
+        const radius = breathContainer.offsetWidth / 2; // Outer radius
+        const dotSize = progressDot.offsetWidth;
+        const dotOffset = dotSize / 2; // To center the dot on the line
 
-    // Start the timer interval after the initial UI update
-    timerInterval = setInterval(tick, 1000);
+        // Center coordinates of the container
+        const centerX = radius;
+        const centerY = radius;
 
-    startButton.disabled = true;
-    stopButton.disabled = false;
-}
+        // Calculate the top-left coordinates for the dot
+        const dotX = centerX + radius * Math.cos(angleRadians) - dotOffset;
+        const dotY = centerY + radius * Math.sin(angleRadians) - dotOffset;
 
-function stopBreathing() {
-    if (!timerInterval) return; // Already stopped
+        // Apply the calculated position
+        progressDot.style.left = `${dotX}px`;
+        progressDot.style.top = `${dotY}px`;
+    }
 
-    clearInterval(timerInterval);
-    timerInterval = null;
+    // --- Animation Loop (Main Logic) ---
+    function animationLoop(timestamp) {
+        if (!isRunning) return; // Stop loop if not running
 
-    // Reset UI to initial state
-    guideText.textContent = '시작하세요';
-    timerText.textContent = '';
-    circle.className = ''; // Remove animation classes
-    circle.style.transitionDuration = '0.5s, 0.5s, 0.5s'; // Reset transition duration
+        if (lastTimestamp === 0) {
+            lastTimestamp = timestamp; // Initialize timestamp on first frame
+        }
+        // Calculate time elapsed since the last frame in seconds
+        const deltaTime = (timestamp - lastTimestamp) / 1000;
+        lastTimestamp = timestamp; // Update timestamp for the next frame
 
-    // Stop sounds
-    tickSound.pause();
-    tickSound.currentTime = 0;
-    phaseSound.pause();
-    phaseSound.currentTime = 0;
+        // Update total time elapsed in the cycle and within the current phase
+        totalTimeElapsedInCycle += deltaTime;
+        timeElapsedInPhase += deltaTime;
 
-    currentPhaseIndex = 0;
-    remainingTime = 0;
+        const currentPhase = phases[currentPhaseIndex];
 
-    startButton.disabled = false;
-    stopButton.disabled = true;
-}
+        // Check if the current phase has completed
+        if (timeElapsedInPhase >= currentPhase.duration) {
+            // Move to the next phase
+            timeElapsedInPhase -= currentPhase.duration; // Carry over extra time
+            currentPhaseIndex = (currentPhaseIndex + 1) % phases.length;
+            // No need to adjust totalTimeElapsedInCycle here, it tracks the overall cycle progress
+        }
 
-// Initial state setup
-stopButton.disabled = true; // Stop button disabled initially
-startButton.addEventListener('click', startBreathing);
-stopButton.addEventListener('click', stopBreathing);
+        // Update the timer display for the current (or new) phase
+        const timeLeftInPhase = phases[currentPhaseIndex].duration - timeElapsedInPhase;
+        updateTimerDisplay(phases[currentPhaseIndex].name, timeLeftInPhase);
 
-// Ensure sounds are loaded - might require user interaction on some browsers
-document.addEventListener('click', () => {
-    tickSound.load();
-    phaseSound.load();
-}, { once: true });
+        // Update the dot's position based on the total time elapsed in the cycle
+        updateDotPosition(totalTimeElapsedInCycle);
+
+        // Request the next frame to continue the animation
+        animationFrameId = requestAnimationFrame(animationLoop);
+    }
+
+    // --- Control Functions ---
+    function startBreathing() {
+        if (isRunning) return; // Prevent multiple starts
+        isRunning = true;
+        startButton.disabled = true;
+        stopButton.disabled = false;
+
+        // Reset time tracking for a fresh start
+        currentPhaseIndex = 0;
+        timeElapsedInPhase = 0;
+        totalTimeElapsedInCycle = 0; // Start cycle from the beginning
+        lastTimestamp = 0; // Reset timestamp for accurate delta time calculation
+
+        updateTimerDisplay(phases[0].name, phases[0].duration); // Show first phase info
+        updateDotPosition(0); // Ensure dot starts at 12 o'clock
+
+        // Start the animation loop
+        animationFrameId = requestAnimationFrame(animationLoop);
+    }
+
+    function stopBreathing() {
+        if (!isRunning) return; // Prevent multiple stops
+        // Reset state completely when stopped
+        resetState();
+    }
+
+    // --- Event Listeners ---
+    startButton.addEventListener('click', startBreathing);
+    stopButton.addEventListener('click', stopBreathing);
+
+    // --- Initial Setup ---
+    resetState(); // Initialize the application state on page load
+});

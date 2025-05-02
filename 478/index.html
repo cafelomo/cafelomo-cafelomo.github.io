@@ -3,29 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>4-7-8 호흡</title>
+    <title>4-7-8 호흡 연습</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <div class="circle-container">
-            <div id="circle">
-                <div id="guide-text">시작하세요</div>
-                <div id="timer-text"></div>
+        <h1>4-7-8 호흡</h1>
+        <div class="breath-container">
+            <div class="breath-circle">
+                <!-- Phase Labels -->
+                <div class="phase-label inhale-label">들이마시기</div>
+                <div class="phase-label hold-label">참기</div>
+                <div class="phase-label exhale-label">내쉬기</div>
+                <!-- Progress Indicator -->
+                <div class="progress-dot"></div>
+            </div>
+            <!-- Timer Display -->
+            <div class="timer-display">
+                <span id="phase-name">시작하세요</span>
+                <span id="time-left">4</span>초 <!-- Initial phase duration -->
             </div>
         </div>
+        <!-- Controls -->
         <div class="controls">
             <button id="start-button">시작</button>
-            <button id="stop-button">정지</button>
+            <button id="stop-button" disabled>정지</button>
         </div>
     </div>
-
-    <audio id="tick-sound" src="tick.mp3" preload="auto"></audio>
-    <audio id="phase-sound" src="phase_change.mp3" preload="auto"></audio>
-
     <script src="script.js"></script>
 </body>
 </html>

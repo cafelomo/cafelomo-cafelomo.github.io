@@ -1,111 +1,169 @@
 body {
-    margin: 0;
-    font-family: sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     background-color: #f0f0f0;
-    overflow: hidden; /* Prevent scrollbars during animation */
+    font-family: sans-serif;
+    margin: 0;
 }
 
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between; /* Distribute space */
     text-align: center;
-    width: 100%;
-    max-width: 400px; /* Mobile-first max width */
-    height: 80vh; /* Limit height to prevent overflow */
-    padding: 20px;
-    box-sizing: border-box;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.circle-container {
-    flex-grow: 1; /* Allow circle container to take available space */
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.breath-container {
+    position: relative;
+    width: 250px; /* Circle size */
+    height: 250px;
+    margin: 30px auto;
+}
+
+.breath-circle {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    /*
+      Phase Durations: Inhale=4s, Hold=7s, Exhale=8s => Total=19s
+      Percentages: Inhale=21.05%, Hold=36.84%, Exhale=42.11%
+      Gradient Stops:
+      Inhale (Green #4CAF50): 0% to 21.05%
+      Hold (Yellow #FFC107): 21.05% to 57.89% (21.05 + 36.84)
+      Exhale (Blue #2196F3): 57.89% to 100%
+    */
+    background: conic-gradient(
+        #4CAF50 0% 21.05%,
+        #FFC107 21.05% 57.89%,
+        #2196F3 57.89% 100%
+    );
+    /* Rotate so Green (Inhale) starts at 12 o'clock */
+    transform: rotate(90deg);
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    margin-bottom: 20px; /* Space between circle and buttons */
 }
 
-#circle {
-    width: 100px; /* Initial size */
-    height: 100px;
-    background-color: #87CEEB; /* Sky Blue */
+/* Inner white circle to create the ring effect */
+.breath-circle::before {
+    content: '';
+    position: absolute;
+    width: 85%; /* Adjust to control ring thickness */
+    height: 85%;
+    background-color: #fff; /* Match container background */
     border-radius: 50%;
+    z-index: 1;
+}
+
+.progress-dot {
+    position: absolute;
+    width: 20px; /* Dot size */
+    height: 20px;
+    background-color: #555; /* Dot color */
+    border-radius: 50%;
+    /* Initial position at 12 o'clock (top center of the ring) */
+    /* Calculation: (ContainerSize / 2) - (DotSize / 2) */
+    /* Adjusted slightly for visual centering on the ring */
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%); /* Center horizontally */
+    z-index: 3; /* Above ring and labels */
+    /* Smooth movement handled by JavaScript */
+}
+
+/* Phase Labels Styling */
+.phase-label {
+    position: absolute;
+    /* Counter-rotate to keep text horizontal */
+    transform: translate(-50%, -50%) rotate(-90deg);
+    font-size: 0.7em;
+    font-weight: bold;
+    color: #333; /* Dark color for readability */
+    pointer-events: none; /* Prevent interference */
+    z-index: 2; /* Below dot, above ring background */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Positioning adjusted for standard horizontal text alignment within segments */
+.inhale-label {
+    /* Top-right quadrant (Green) */
+    top: 50px;
+    left: 175px;
+}
+
+.hold-label {
+    /* Bottom-right quadrant (Yellow) */
+    top: 200px;
+    left: 175px;
+}
+
+.exhale-label {
+    /* Left semi-circle (Blue) */
+    top: 125px; /* Vertically centered */
+    left: 55px;
+}
+
+.timer-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 4; /* Above everything inside the circle */
+    font-size: 1.5em;
+    color: #333;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    position: relative; /* Needed for text positioning */
-    transition: width 0.5s ease-in-out, height 0.5s ease-in-out, background-color 0.5s ease-in-out;
-    color: white;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Animation states */
-#circle.grow {
-    /* Max size calculated to fit within container */
-    width: clamp(150px, 60vmin, 250px);
-    height: clamp(150px, 60vmin, 250px);
-}
-
-#circle.hold {
-    background-color: #9370DB; /* Medium Purple */
-    /* Size remains the same as .grow */
-    width: clamp(150px, 60vmin, 250px);
-    height: clamp(150px, 60vmin, 250px);
-}
-
-#circle.shrink {
-    width: 100px; /* Back to initial size */
-    height: 100px;
-    background-color: #87CEEB; /* Back to initial color */
-}
-
-#guide-text {
-    font-size: 1.2em; /* Relative font size */
+#phase-name {
+    font-size: 0.8em;
     margin-bottom: 5px;
-}
-
-#timer-text {
-    font-size: 2.5em; /* Larger font size for timer */
+    color: #666;
 }
 
 .controls {
-    display: flex;
-    gap: 15px; /* Space between buttons */
+    margin-top: 30px;
 }
 
 button {
     padding: 10px 20px;
     font-size: 1em;
+    margin: 0 10px;
     cursor: pointer;
     border: none;
     border-radius: 5px;
-    background-color: #4CAF50; /* Green */
-    color: white;
     transition: background-color 0.3s ease;
 }
 
-button:hover {
+#start-button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+
+#start-button:hover:not(:disabled) {
     background-color: #45a049;
 }
 
 #stop-button {
     background-color: #f44336; /* Red */
+    color: white;
 }
 
-#stop-button:hover {
+#stop-button:hover:not(:disabled) {
     background-color: #da190b;
 }
 
-/* Hide audio elements visually */
-audio {
-    position: absolute;
-    left: -9999px;
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
